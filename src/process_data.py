@@ -5,8 +5,10 @@ import glob
 from datetime import datetime
 
 
+# ============================= This file is 1st prototype of this project =============================
 
 # EPA Breakpoint tables: (Conc_low, Conc_high, AQI_low, AQI_high)
+# These tables are use in live_pipeline.py
 PM25_BREAKPOINTS = [
     (0.0, 12.0, 0, 50),
     (12.1, 35.4, 51, 100),
@@ -25,7 +27,8 @@ PM10_BREAKPOINTS = [
     (425.0, 604.9, 301, 500),
 ]
 
-# calulate AQI
+# =================================== calculating AQI ===================================
+# This fun is used in the live pipeline (live_pipeline.py)
 def calculate_aqi(concentration, breakpoints):
     for conc_low, conc_high, aqi_low, aqi_high in breakpoints:
         if conc_low <= concentration <= conc_high:
@@ -38,6 +41,8 @@ def calculate_aqi(concentration, breakpoints):
         return 500    
     return None
 
+
+# ///////// All the fun below are usded locally only for testing and debugging not use in live_pipeline.py /////////
 
 # reading raw json and processing to find AQI
 def process_raw_file(filepath):
