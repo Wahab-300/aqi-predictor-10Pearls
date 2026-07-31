@@ -42,7 +42,7 @@ def calculate_aqi(concentration, breakpoints):
     return None
 
 
-# ///////// All the fun below are usded locally only for testing and debugging not use in live_pipeline.py /////////
+# ///////// All the fun below are used locally only for testing and debugging not use in live_pipeline.py /////////
 
 # reading raw json and processing to find AQI
 def process_raw_file(filepath):
@@ -115,15 +115,6 @@ def extract_time_features(timestamp_str):
     month = dt.month
 
     return hour, day_of_week, month
-
-
-
-
-
-
-
-
-
 
 
 
