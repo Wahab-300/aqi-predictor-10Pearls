@@ -1,13 +1,19 @@
 import pandas as pd
 import numpy as np
+import joblib
+import os
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.linear_model import Ridge
-import joblib
-import os
+from hopsworks_connection import connect_to_hopsworks, get_or_create_feature_group
+
+
+# connect to hopsworks project
+project = connect_to_hopsworks()
+fg = get_or_create_feature_group(project)
 
 # shift lastest 72 rows (3 days) to avoid NaN error
-df = pd.read_csv("data/processed/bahawalpur_historical.csv")
+df = fg.read()
 df['aqi_24h_ago'] = df['overall_aqi'].shift(24)
 df['aqi_change_rate'] = df['overall_aqi'] - df['aqi_24h_ago']
 df['aqi_rolling_avg_24h'] = df['overall_aqi'].rolling(window=24).mean()
@@ -60,18 +66,21 @@ def train_and_evaluate(model, X_train, X_test, y_train, y_test, label):
     
     print(f"--- {label} ---")
     print(f"RMSE: {rmse:.2f}, MAE: {mae:.2f}, R²: {r2:.2f}")
-    return model
+    return model, {"rmse": rmse, "mae": mae, "r2": r2}
+
+
 
 # //////// Random Forest ////////
-model_day1_rf = train_and_evaluate(RandomForestRegressor(random_state=42), X_train, X_test, y1_train, y1_test, "Day 1 - Random Forest")
-model_day2_rf = train_and_evaluate(RandomForestRegressor(random_state=42), X_train, X_test, y2_train, y2_test, "Day 2 - Random Forest")
-model_day3_rf = train_and_evaluate(RandomForestRegressor(random_state=42), X_train, X_test, y3_train, y3_test, "Day 3 - Random Forest")
+model_day1_rf, metrics_day1_rf = train_and_evaluate(RandomForestRegressor(random_state=42), X_train, X_test, y1_train, y1_test, "Day 1 - Random Forest")
+model_day2_rf, metrics_day2_rf = train_and_evaluate(RandomForestRegressor(random_state=42), X_train, X_test, y2_train, y2_test, "Day 2 - Random Forest")
+model_day3_rf, metrics_day3_rf = train_and_evaluate(RandomForestRegressor(random_state=42), X_train, X_test, y3_train, y3_test, "Day 3 - Random Forest")
 
 
 # //////// Ridge Regression ///////
-model_day1_ridge = train_and_evaluate(Ridge(), X_train, X_test, y1_train, y1_test, "Day 1 - Ridge")
-model_day2_ridge = train_and_evaluate(Ridge(), X_train, X_test, y2_train, y2_test, "Day 2 - Ridge")
-model_day3_ridge = train_and_evaluate(Ridge(), X_train, X_test, y3_train, y3_test, "Day 3 - Ridge")
+model_day1_ridge, metrics_day1_ridge = train_and_evaluate(Ridge(), X_train, X_test, y1_train, y1_test, "Day 1 - Ridge")
+model_day2_ridge, metrics_day2_ridge = train_and_evaluate(Ridge(), X_train, X_test, y2_train, y2_test, "Day 2 - Ridge")
+model_day3_ridge, metrics_day3_ridge = train_and_evaluate(Ridge(), X_train, X_test, y3_train, y3_test, "Day 3 - Ridge")
+
 
 
 # =================================== Saving models to local file ===================================
@@ -82,3 +91,22 @@ joblib.dump(model_day2_ridge, "models/ridge_day2.pkl")
 joblib.dump(model_day3_ridge, "models/ridge_day3.pkl")
 
 print("Models saved successfully.")
+
+
+# =================================== Register model to the model Registery ===================================
+def register_model(project, model_path, model_name, metrics):
+    mr = project.get_model_registry()
+    
+    model = mr.python.create_model(
+        name=model_name,
+        metrics=metrics,
+        description=f"Ridge Regression model for {model_name}"
+    )
+    model.save(model_path)
+    print(f"Registered model: {model_name}")
+
+
+## Call the registered models
+register_model(project, "models/ridge_day1.pkl", "ridge_day1", metrics_day1_ridge)
+register_model(project, "models/ridge_day2.pkl", "ridge_day2", metrics_day2_ridge)
+register_model(project, "models/ridge_day3.pkl", "ridge_day3", metrics_day3_ridge)

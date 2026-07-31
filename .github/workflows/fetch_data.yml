@@ -3,7 +3,7 @@ name: Hourly AQI Data Fetch
 on:
   schedule:
     - cron: "0 * * * *" # cron expression (Minute Hour Day Month Weekday)
-  workflow_dispatch:
+  workflow_dispatch: # add btn by which can run pipline whenever we want
 
 jobs:
   fetch:
