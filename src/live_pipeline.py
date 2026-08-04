@@ -49,7 +49,6 @@ def run_live_pipeline():
     
     row = build_live_row("bahawalpur", 29.3956, 71.6836)
     df = pd.DataFrame([row])
-    
     fg.insert(df)
     print("Live row inserted:", row)
 

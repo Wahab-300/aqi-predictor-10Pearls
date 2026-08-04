@@ -24,7 +24,7 @@ def get_or_create_feature_group(project):
     fs = project.get_feature_store()
     
     feature_group = fs.get_or_create_feature_group(
-        name="bahawalpur_aqi_features",
+        name="bahawalpur_aqi_features_v2",
         version=1,
         description="Hourly AQI and weather features for Bahawalpur",
         primary_key=["timestamp"],
