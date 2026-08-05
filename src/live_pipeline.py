@@ -49,6 +49,20 @@ def run_live_pipeline():
     
     row = build_live_row("bahawalpur", 29.3956, 71.6836)
     df = pd.DataFrame([row])
+
+# explicitly convert the data types to the correct types
+    df = df.astype({
+    "pm2_5": "float64",
+    "pm10": "float64",
+    "hour": "int64",
+    "day_of_week": "int64",
+    "month": "int64",
+    "aqi_pm25": "int64",
+    "aqi_pm10": "int64",
+    "overall_aqi": "int64",
+    })
+
+
     fg.insert(df)
     print("Live row inserted:", row)
 

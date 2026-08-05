@@ -207,6 +207,10 @@ with hcol3:
 
 st.write("")
 
+# ===================================  Reserved Space for Alert Banner ===================================
+alert_placeholder = st.empty()
+
+
 # ===================================  Current AQI + Health Guidance ===================================
 category = get_aqi_category(latest_row["overall_aqi"])
 
@@ -315,6 +319,29 @@ live_features = pd.DataFrame([{
 }])
 
 predictions = {day: models[day].predict(live_features)[0] for day in [1, 2, 3]}
+
+
+# ============  Hazard Alert Banner ============    
+HAZARD_THRESHOLD = 201
+
+alert_messages = []
+if latest_row["overall_aqi"] >= HAZARD_THRESHOLD:
+    alert_messages.append(f"Current AQI is {latest_row['overall_aqi']:.0f} — {get_aqi_category(latest_row['overall_aqi'])}")
+
+for day in [1, 2, 3]:
+    if predictions[day] >= HAZARD_THRESHOLD:
+        alert_messages.append(f"Day {day} forecast is {predictions[day]:.0f} — {get_aqi_category(predictions[day])}")
+
+if alert_messages:
+    alert_text = " · ".join(alert_messages)
+    alert_placeholder.markdown(f"""
+    <div style="background-color:#fee2e2; border-left:5px solid #ef4444; border-radius:10px; padding:14px 20px; margin-bottom:20px;">
+        <span style="font-weight:800; color:#991b1b;">⚠️ Hazard Alert:</span>
+        <span style="color:#7f1d1d;"> {alert_text}</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ============      ============
 
 st.markdown('<p class="section-title">3-Day AQI Forecast</p>', unsafe_allow_html=True)
 st.markdown('<p class="section-subtitle">Predicted AQI for the next three days</p>', unsafe_allow_html=True)
