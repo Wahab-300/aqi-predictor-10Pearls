@@ -23,21 +23,21 @@ def fetch_aqi(lat, lon):
 
 
 # ///////// this fun used locally only for testing and debugging not use in live_pipeline.py /////////
-def save_raw_data(city_name, data):
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"data/raw/{city_name.lower()}_{timestamp}.json"
+# def save_raw_data(city_name, data):
+#     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+#     filename = f"data/raw/{city_name.lower()}_{timestamp}.json"
     
-    with open(filename, "w") as f:
-        json.dump(data, f, indent=4)
+#     with open(filename, "w") as f:
+#         json.dump(data, f, indent=4)
     
-    print(f"Saved: {filename}")
+#     print(f"Saved: {filename}")
 
 
-if __name__ == "__main__":
-    city = "Bahawalpur"
-    lat, lon = 29.3956, 71.6836
+# if __name__ == "__main__":
+#     city = "Bahawalpur"
+#     lat, lon = 29.3956, 71.6836
     
-    result = fetch_aqi(lat, lon)
-    print(city, result)
-    save_raw_data(city, result)
+#     result = fetch_aqi(lat, lon)
+#     print(city, result)
+#     save_raw_data(city, result)
 

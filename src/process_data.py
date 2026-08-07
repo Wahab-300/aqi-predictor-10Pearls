@@ -45,79 +45,79 @@ def calculate_aqi(concentration, breakpoints):
 # ///////// All the fun below are used locally only for testing and debugging not use in live_pipeline.py /////////
 
 # reading raw json and processing to find AQI
-def process_raw_file(filepath):
-    with open(filepath, "r") as f:
-        data = json.load(f)
+# def process_raw_file(filepath):
+#     with open(filepath, "r") as f:
+#         data = json.load(f)
     
-    components = data["list"][0]["components"]
-    pm25 = components["pm2_5"]
-    pm10 = components["pm10"]
+#     components = data["list"][0]["components"]
+#     pm25 = components["pm2_5"]
+#     pm10 = components["pm10"]
     
-    aqi_pm25 = calculate_aqi(pm25, PM25_BREAKPOINTS)
-    aqi_pm10 = calculate_aqi(pm10, PM10_BREAKPOINTS)
+#     aqi_pm25 = calculate_aqi(pm25, PM25_BREAKPOINTS)
+#     aqi_pm10 = calculate_aqi(pm10, PM10_BREAKPOINTS)
     
-    overall_aqi = max(aqi_pm25, aqi_pm10)
+#     overall_aqi = max(aqi_pm25, aqi_pm10)
     
-    return {
-        "pm2_5": pm25,
-        "pm10": pm10,
-        "aqi_pm25": aqi_pm25,
-        "aqi_pm10": aqi_pm10,
-        "overall_aqi": overall_aqi
-    }
+#     return {
+#         "pm2_5": pm25,
+#         "pm10": pm10,
+#         "aqi_pm25": aqi_pm25,
+#         "aqi_pm10": aqi_pm10,
+#         "overall_aqi": overall_aqi
+#     }
 
 
-# extracting the city and timestamp
-def parse_filename(filename):
-    # e.g. karachi_2026-07-24_17-58-38.json
-    name = filename.replace(".json", "")
-    parts = name.split("_", 1)
-    city = parts[0]
-    timestamp = parts[1]
-    return city, timestamp
+# # extracting the city and timestamp
+# def parse_filename(filename):
+#     # e.g. karachi_2026-07-24_17-58-38.json
+#     name = filename.replace(".json", "")
+#     parts = name.split("_", 1)
+#     city = parts[0]
+#     timestamp = parts[1]
+#     return city, timestamp
 
 
-# processing all the raw json files
-def process_all_raw_files():
-    raw_files = glob.glob("data/raw/*.json")
-    rows = []
+# # processing all the raw json files
+# def process_all_raw_files():
+#     raw_files = glob.glob("data/raw/*.json")
+#     rows = []
 
-    for filepath in raw_files:
-        filename_only = os.path.basename(filepath)
-        city, timestamp = parse_filename(filename_only)
-        result = process_raw_file(filepath)
+#     for filepath in raw_files:
+#         filename_only = os.path.basename(filepath)
+#         city, timestamp = parse_filename(filename_only)
+#         result = process_raw_file(filepath)
 
-        hour, day_of_week, month = extract_time_features(timestamp)
-
-
-
-        row = {
-            "city": city,
-            "timestamp": timestamp,
-            "hour": hour,
-            "day_of_week": day_of_week,
-            "month": month,
-            **result
-        }
-        rows.append(row) 
-
-    df = pd.DataFrame(rows)    
-    df.to_csv("data/processed/aqi_data.csv", index=False)
-    print(f"Processed {len(rows)} files → saved to data/processed/aqi_data.csv")
-
-
-# extract time features for timestamp string
-def extract_time_features(timestamp_str):
-    dt = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
-
-    hour = dt.hour
-    day_of_week = dt.weekday()
-    month = dt.month
-
-    return hour, day_of_week, month
+#         hour, day_of_week, month = extract_time_features(timestamp)
 
 
 
-if __name__ == "__main__":
-    process_all_raw_files()
+#         row = {
+#             "city": city,
+#             "timestamp": timestamp,
+#             "hour": hour,
+#             "day_of_week": day_of_week,
+#             "month": month,
+#             **result
+#         }
+#         rows.append(row) 
+
+#     df = pd.DataFrame(rows)    
+#     df.to_csv("data/processed/aqi_data.csv", index=False)
+#     print(f"Processed {len(rows)} files → saved to data/processed/aqi_data.csv")
+
+
+# # extract time features for timestamp string
+# def extract_time_features(timestamp_str):
+#     dt = datetime.strptime(timestamp_str, "%Y-%m-%d_%H-%M-%S")
+
+#     hour = dt.hour
+#     day_of_week = dt.weekday()
+#     month = dt.month
+
+#     return hour, day_of_week, month
+
+
+
+# if __name__ == "__main__":
+#     process_all_raw_files()
 
