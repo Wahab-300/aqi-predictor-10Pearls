@@ -62,6 +62,16 @@ aqi-predictor/
 
 See [`PROJECT_SUMMARY.md`](./PROJECT_SUMMARY.md) for the complete journey — architecture decisions, every bug encountered and fixed, and the full MLOps pipeline design. A printable PDF version is in [`docs/Project_Summary.pdf`](./docs/Project_Summary.pdf).
 
+## Beyond the Original Spec
+
+While the core spec asked for a working forecasting pipeline, the project was extended with several production-grade additions:
+
+- **Model Explainability (SHAP)** — every dashboard prediction includes a live waterfall chart showing exactly which features pushed the AQI forecast up or down, using `shap.LinearExplainer` for exact, deterministic explanations.
+- **Full EDA Notebook** — covers hourly and seasonal AQI patterns, pollutant correlation analysis, and a real case study of a dust storm event captured in the data (PM10 spiking past 700, correctly capped and handled by the pipeline).
+- **Custom Production UI** — a fully custom dark-themed dashboard (not default Streamlit styling), with consistent spacing, color-coded AQI severity badges, a branded loading spinner, and responsive chart scaling.
+- **Code Cleanup Pass** — removed all legacy/prototype code paths, pinned exact dependency versions for reproducible deployments, and fixed a real production incident where a schema type mismatch silently broke both automated pipelines.
+- **Full Documentation Suite** — README, a detailed project write-up with an architecture diagram, and a printable PDF summary for portfolio and interview use.
+
 ## Author
 
 **Abdul Wahab** · Data Science Intern @ 10Pearls Pakistan
