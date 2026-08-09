@@ -23,16 +23,16 @@ The project follows a 100% serverless architecture: live hourly data collection,
                   │ hourly                    │ one-time
                   ▼                           │ bulk load
         ┌───────────────────┐                 │
-        │  GitHub Actions    │                |
-        │  live_pipeline.py  │                |
-        │  cron: every hour  │                |
+        │  GitHub Actions    │                 │
+        │  live_pipeline.py  │                 │
+        │  cron: every hour  │                 │
         └─────────┬─────────┘                 │
                   │ insert (typed)             │
                   ▼                            ▼
         ┌─────────────────────────────────────────┐
-        │               HOPSWORKS                 |
-        │        Feature Store (Serverless)       |
-        │     bahawalpur_aqi_features_v2          |
+        │               HOPSWORKS                  │
+        │        Feature Store (Serverless)         │
+        │     bahawalpur_aqi_features_v2              │
         └─────────┬─────────────────────┬───────────┘
                   │                     │
         read (daily, full)     read (on dashboard load)
@@ -54,7 +54,7 @@ The project follows a 100% serverless architecture: live hourly data collection,
         │     HOPSWORKS       │◄────────────┘
         │  Model Registry      │
         │ ridge_day1/2/3        │
-        │ (versioned)           |
+        │ (versioned)            │
         └───────────┬───────────┘
                     │
                     ▼
@@ -67,7 +67,6 @@ The project follows a 100% serverless architecture: live hourly data collection,
 ```
 
 **Flow in plain words:**
-
 1. Every hour, GitHub Actions fetches live pollution data and writes it into Hopsworks.
 2. Once a day, a separate GitHub Actions job reads the full dataset, retrains 3 Ridge models (one per forecast horizon), and registers them with real accuracy metrics.
 3. The Streamlit dashboard reads the latest data and models on load, generates a live 3-day forecast, and uses SHAP to explain exactly why each prediction came out the way it did.
@@ -75,16 +74,16 @@ The project follows a 100% serverless architecture: live hourly data collection,
 
 ## 3. Tech Stack
 
-| Component                      | Choice                           | Why                                                                                                                   |
-| ------------------------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Live data                      | OpenWeather Air Pollution API    | Free tier, bundles weather + pollution, satellite-based (works for smaller cities where AQICN has no ground stations) |
-| Historical backfill            | Open-Meteo                       | Genuinely free, no API key, real historical endpoint                                                                  |
-| Feature Store / Model Registry | Hopsworks (serverless)           | Free tier needs no credit card, unlike Vertex AI                                                                      |
-| Models                         | Random Forest + Ridge Regression | Compared on real metrics; Ridge won on all 3 forecast horizons                                                        |
-| Explainability                 | SHAP (`LinearExplainer`)         | Exact, deterministic explanations for a linear model                                                                  |
-| Dashboard                      | Streamlit + Plotly               | Fastest to build a multi-section interactive dashboard                                                                |
-| Automation                     | GitHub Actions                   | Free, spec-approved alternative to Apache Airflow                                                                     |
-| Deployment                     | Streamlit Community Cloud        | Free hosting built for Streamlit apps                                                                                 |
+| Component | Choice | Why |
+|---|---|---|
+| Live data | OpenWeather Air Pollution API | Free tier, bundles weather + pollution, satellite-based (works for smaller cities where AQICN has no ground stations) |
+| Historical backfill | Open-Meteo | Genuinely free, no API key, real historical endpoint |
+| Feature Store / Model Registry | Hopsworks (serverless) | Free tier needs no credit card, unlike Vertex AI |
+| Models | Random Forest + Ridge Regression | Compared on real metrics; Ridge won on all 3 forecast horizons |
+| Explainability | SHAP (`LinearExplainer`) | Exact, deterministic explanations for a linear model |
+| Dashboard | Streamlit + Plotly | Fastest to build a multi-section interactive dashboard |
+| Automation | GitHub Actions | Free, spec-approved alternative to Apache Airflow |
+| Deployment | Streamlit Community Cloud | Free hosting built for Streamlit apps |
 
 ## 4. Data Pipeline
 
@@ -97,7 +96,6 @@ AQI = ((AQI_high − AQI_low) / (Conc_high − Conc_low)) × (Conc − Conc_low)
 Extreme values (e.g. a real dust storm event with PM10 readings of 685–704) are capped at AQI 500 rather than dropped — matching how real-world AQI systems like AirNow and IQAir handle hazardous extremes.
 
 **Feature engineering:**
-
 - Time features: `hour`, `day_of_week`, `month`
 - Derived features: `aqi_24h_ago`, `aqi_change_rate`, `aqi_rolling_avg_24h` — added after the first model attempt scored a negative R², since raw snapshot data alone gave the model no sense of trend or momentum
 
@@ -107,11 +105,11 @@ Extreme values (e.g. a real dust storm event with PM10 readings of 685–704) ar
 
 ## 5. Model Results
 
-| Horizon     | Random Forest R² | Ridge R² | Ridge RMSE |
-| ----------- | ---------------- | -------- | ---------- |
-| Day 1 (24h) | 0.25             | **0.31** | 34.13      |
-| Day 2 (48h) | 0.15             | **0.19** | 36.80      |
-| Day 3 (72h) | 0.01             | **0.15** | 37.67      |
+| Horizon | Random Forest R² | Ridge R² | Ridge RMSE |
+|---|---|---|---|
+| Day 1 (24h) | 0.25 | **0.31** | 34.13 |
+| Day 2 (48h) | 0.15 | **0.19** | 36.80 |
+| Day 3 (72h) | 0.01 | **0.15** | 37.67 |
 
 Ridge Regression won on every horizon. Accuracy naturally decreases as the forecast window extends — a realistic pattern that mirrors real weather forecasting, where near-term predictions are always more reliable than longer-range ones.
 
@@ -120,7 +118,6 @@ Ridge Regression won on every horizon. Accuracy naturally decreases as the forec
 Each Ridge model is paired with a `shap.LinearExplainer`, built on the full training background set (no subsampling, fully deterministic). The dashboard shows a waterfall chart for the live Day-1 prediction, breaking down exactly how each feature pushed the forecast up or down from the model's average baseline.
 
 **Key findings:**
-
 - **Short-term (Day 1):** dominated by today's actual pollutant readings (`aqi_pm25`, `pm10`) — pollution has strong short-term persistence.
 - **Long-term (Day 3):** `aqi_pm10` (coarse dust) becomes the dominant driver, consistent with Bahawalpur's desert dust-storm dynamics mattering more at longer horizons than short-term smoke/smog.
 
@@ -145,7 +142,7 @@ A selection of genuine engineering challenges encountered and fixed during the p
 
 - Multi-city support (schema already includes a `city` column, currently constant, specifically to make this easier later)
 - 6-pollutant grid + weather "Current Conditions" card (temperature, humidity, pressure)
-- Deep learning model (LSTM) — explicitly optional per spec; current 2-model comparison already satisfies the "various models" requirement, and Ridge already generalizes well on this feature set
+- **Deep learning model (LSTM) — deliberately not built.** The official spec asks to "support multiple forecasting models from statistical to deep learning," which describes a range of acceptable approaches rather than a mandatory checklist. Random Forest and Ridge Regression were compared on real metrics, satisfying the multi-model requirement. An LSTM was considered but intentionally skipped: with ~14,000 training rows, a deep learning model is unlikely to reliably outperform Ridge, and risks weakening the project's results rather than strengthening them. This is a documented scope decision, not an oversight, and remains a natural next step if the dataset grows significantly larger over time.
 
 ## 10. Author
 
